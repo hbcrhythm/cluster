@@ -1,0 +1,25 @@
+{application, cluster,
+ [{description, "An OTP application"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, { cluster_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    lager
+   ]},
+  {env,[
+      {srv_id, 1}
+      ,{server_full_id, [1, 2, 3]}
+      ,{node_type, normal}
+      ,{platform, <<"ios">>}
+      ,{ver, <<"1.0.0">>}
+      ,{center_node, 'cluster_center_1@127.0.0.1'}
+      ,{center_cookie, '666'}
+  ]},
+  {modules, []},
+
+  {maintainers, []},
+  {licenses, ["Apache 2.0"]},
+  {links, []}
+ ]}.
