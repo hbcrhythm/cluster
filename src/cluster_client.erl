@@ -28,7 +28,7 @@ stop() -> ok.
 init([]) ->
     lager:info("start cluster client"),
     ets:new(?CLUSTER_SERVER, [ordered_set, named_table, public, {keypos, #cluster_server.id}]),
-    ets:new(?CLUSTER_SERVER_ID, [set, named_table, public, {keypos, 1}]),
+    ets:new(?CLUSTER_SERVER_ID, [set, named_table, public, {keypos, #cluster_server_id.sub_id}]),
     application:set_env(cluster, is_connect_cluster, false),
     {ok, #state{}}.
 
@@ -99,7 +99,7 @@ handle_info({cluster_servers, Servers}, State) ->
         begin
             erlang:set_cookie(Node, Cookie),
             ets:insert(?CLUSTER_SERVER, ClusterServer),
-            [ets:insert(?CLUSTER_SERVER_ID, {SubId, ID, Node}) || SubId <- FullId]
+            [ets:insert(?CLUSTER_SERVER_ID, #cluster_server_id{sub_id = SubId, id = ID, node = Node}) || SubId <- FullId]
         end
         || ClusterServer = #cluster_server{id=ID, full_id=FullId, node=Node, cookie = Cookie} <- Servers
     ],

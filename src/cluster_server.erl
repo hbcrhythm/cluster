@@ -29,7 +29,7 @@ init([]) ->
     process_flag(trap_exit, true),
     net_kernel:monitor_nodes(true, [{node_type, all}]),
     ets:new(?CLUSTER_SERVER, [ordered_set, named_table, public, {keypos, #cluster_server.id}]),
-    ets:new(?CLUSTER_SERVER_ID, [set, named_table, public, {keypos, 1}]),
+    ets:new(?CLUSTER_SERVER_ID, [set, named_table, public, {keypos, #cluster_server_id.sub_id}]),
     ets:new(?CLUSTER_CLOUD_TASK, [set, named_table, public, {keypos, #cluster_cloud_task.id}]),
     {ok, #state{}}.
 
@@ -46,7 +46,7 @@ handle_info({connect, ClusterServer = #cluster_server{id = Id, full_id = FullId,
             lager:error("server [~w]~w is exist", [Id, Node]);
         [] -> 
             ets:insert(?CLUSTER_SERVER, ClusterServer),
-            [ets:insert(?CLUSTER_SERVER_ID, {SubId, Id, Node}) || SubId <- FullId],
+            [ets:insert(?CLUSTER_SERVER_ID, #cluster_server_id{sub_id = SubId, id = Id, node = Node}) || SubId <- FullId],
             erlang:send(Pid, ready),
             OtherSrvs = other_srvs(Node, Platform),
             erlang:send(Pid, {cluster_servers, OtherSrvs}),   %% 通知新节点，其他的节点

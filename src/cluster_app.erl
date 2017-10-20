@@ -38,29 +38,19 @@ start_child([H | T]) ->
 			exit({error, _Error})
 	end.
 
-connect(normal) ->
-	cluster_client:async(connect);
-connect(cloud) ->
-	cluster_client:async(connect);
 connect(center) ->
-	cluster_server:async(connect).
-
-servers(normal) ->
-	[
-		{cluster_msg, {cluster_msg, start_link, []}, transient, 10000, worker, [cluster_msg]},
-		{cluster_client, {cluster_client, start_link, []}, transient, 10000, worker, [cluster_client]}
-	];
-
-servers(cloud) ->
-	[
-		{cluster_msg, {cluster_msg, start_link, []}, transient, 10000, worker, [cluster_msg]},
-		{cluster_client, {cluster_client, start_link, []}, transient, 10000, worker, [cluster_client]}
-	];
+	ignore;
+connect(_) ->
+	cluster_client:async(connect).
 
 servers(center) ->
 	[
-		{cluster_msg, {cluster_msg, start_link, []}, transient, 10000, worker, [cluster_msg]},
 		{cluster_server, {cluster_server, start_link, []}, transient, 10000, worker, [cluster_server]}
+	];
+
+servers(_) ->
+	[
+		{cluster_client, {cluster_client, start_link, []}, transient, 10000, worker, [cluster_client]}
 	].
 
 %%====================================================================

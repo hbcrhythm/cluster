@@ -29,7 +29,7 @@ call(NodeType, M, F, A) when is_atom(NodeType) ->
 	ClusterServers = ets:match_object(?CLUSTER_SERVER, #cluster_server{type = NodeType, _ = '_'}),
 	case ClusterServers =:= [] of
 		false ->
-			RandomId = random:uniform(1, length(ClusterServers)),
+			RandomId = random:uniform(length(ClusterServers)),
 			#cluster_server{node = Node} = lists:nth(RandomId, ClusterServers),
 			call({node, Node}, M, F, A);
 		true ->
@@ -71,7 +71,7 @@ cast(NodeType, M, F, A) when is_atom(NodeType) ->
 	ClusterServers = ets:match_object(?CLUSTER_SERVER, #cluster_server{type = NodeType, _ = '_'}),
 	case ClusterServers =:= [] of
 		false ->
-			RandomId = random:uniform(1, length(ClusterServers)),
+			RandomId = random:uniform(length(ClusterServers)),
 			#cluster_server{node = Node} = lists:nth(RandomId, ClusterServers),
 			cast({node, Node}, M, F, A);
 		true ->

@@ -18,8 +18,13 @@
         ,node               %% 节点名
         ,cookie
         ,ver                %% 版本
-    }
-).
+    }).
+
+-record(cluster_server_id, {
+        sub_id
+        ,id
+        ,node
+    }).
 
 -record(cluster_cloud_task, {
         id                  %% 模块唯一标识
