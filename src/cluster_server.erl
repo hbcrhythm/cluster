@@ -1,6 +1,7 @@
 %% ---------------------------------------
 %% @doc cluster server
 %% @author labihbc@gmail.com
+%% @end
 %% ---------------------------------------
 
 -module(cluster_server).
@@ -71,6 +72,13 @@ handle_info({nodedown, Node, _}, State) ->
     do_nodedown(Node),
     {noreply, State};
 
+handle_info({is_open, _}, State) ->
+    {noreply, State};
+handle_info({update_cluster_server, ClusterServer = #cluster_server{node = Node, platform = Platform}}, State) ->
+    ets:insert(?CLUSTER_SERVER, ClusterServer),
+    OtherSrvs = other_srvs(Node, Platform),
+    [erlang:send(XPid, {cluster_servers, [ClusterServer]}) || #cluster_server{pid = XPid} <- OtherSrvs],
+    {noreply, State};
 
 handle_info(_Info, State) ->
     lager:error("not know message: ~w", [_Info]),

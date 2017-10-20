@@ -1,23 +1,32 @@
-%% @doc normal | cloud | center
--define(DEFAULT_NODE_TYPE, normal).
+%%------------------------------------------------------------
+%% @author labihbc@gmail.com
+%% @doc logic | center
+%% @doc logic is server type, example: chat, instance, manager, path, logic, auth, area, connector etc.
+%% @doc same server type is can't remote call or cast
+%%------------------------------------------------------------
+
+-define(DEFAULT_NODE_TYPE, logic).
 
 -define(CLUSTER_SERVER, cluster_server).
 -define(CLUSTER_SERVER_ID, cluster_server_id).
 -define(CLUSTER_CLOUD_TASK, cluster_cloud_task).
+-define(CLUSTER_OPEN_STATUS, true).
+-define(CLUSTER_CLOSE_STATUS, false).
 
 -define(CLUSTER_CONNECT_INTERVAL, 1000).   %% 单位秒
 -define(PING_INTERVAL, 3000).   %% 单位秒
 
 -record(cluster_server, {
-        id = 0              %% 服务器唯一id
-        ,full_id = []       %% 服务器唯一id（全称
+        id = 0                              %% 服务器唯一id
+        ,full_id = []                       %% 服务器唯一id（全称
         ,pid
-        ,type = normal      %% 服务器类型
-        ,platform           %% 平台名
-        ,name = <<>>        %% 游戏小名
-        ,node               %% 节点名
+        ,type = ?DEFAULT_NODE_TYPE          %% 服务器类型
+        ,platform                           %% 平台名
+        ,name = <<>>                        %% 游戏小名
+        ,node                               %% 节点名
         ,cookie
-        ,ver                %% 版本
+        ,ver                                %% 版本
+        ,is_open = ?CLUSTER_OPEN_STATUS     %% 是否开放node_type访问，实现负载均衡控制. bool()
     }).
 
 -record(cluster_server_id, {
@@ -29,5 +38,4 @@
 -record(cluster_cloud_task, {
         id                  %% 模块唯一标识
         ,pos = 0            %% 下标
-    }
-).
+    }).

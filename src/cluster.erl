@@ -13,7 +13,6 @@
 
 start() ->
 	application:ensure_all_started(cluster).
-    % application:start(cluster).
 
 %%--------------------------------------------------------------------
 stop() ->

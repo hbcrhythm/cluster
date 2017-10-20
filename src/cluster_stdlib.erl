@@ -7,7 +7,7 @@
 
 -include("cluster.hrl").
 
--export([call/4, cast/4, call_broadcast/4, cast_broadcast/4]).
+-export([call/4, cast/4, call_broadcast/4, cast_broadcast/4, open/1, close/1]).
 
 %% @doc do call
 call(ServerId, M, F, A) when is_integer(ServerId) ->
@@ -21,12 +21,12 @@ call(ServerId, M, F, A) when is_integer(ServerId) ->
 					call({node, Node}, M, F, A)
 			end;
 		_ ->
-			{error, error_serverid}
+			{error, not_serverid}
 	end;
 
 %% @doc random a node of NodeType to do call
 call(NodeType, M, F, A) when is_atom(NodeType) ->
-	ClusterServers = ets:match_object(?CLUSTER_SERVER, #cluster_server{type = NodeType, _ = '_'}),
+	ClusterServers = ets:match_object(?CLUSTER_SERVER, #cluster_server{type = NodeType, is_open = ?CLUSTER_OPEN_STATUS, _ = '_'}),
 	case ClusterServers =:= [] of
 		false ->
 			RandomId = random:uniform(length(ClusterServers)),
@@ -63,12 +63,12 @@ cast(ServerId, M, F, A) when is_integer(ServerId) ->
 					cast({node, Node}, M, F, A)
 			end;
 		_ ->
-			{error, error_serverid}
+			{error, not_serverid}
 	end;
 
 %% @doc random a node of NodeType to do cast
 cast(NodeType, M, F, A) when is_atom(NodeType) ->
-	ClusterServers = ets:match_object(?CLUSTER_SERVER, #cluster_server{type = NodeType, _ = '_'}),
+	ClusterServers = ets:match_object(?CLUSTER_SERVER, #cluster_server{type = NodeType, is_open = ?CLUSTER_OPEN_STATUS, _ = '_'}),
 	case ClusterServers =:= [] of
 		false ->
 			RandomId = random:uniform(length(ClusterServers)),
@@ -91,4 +91,20 @@ cast_broadcast({type, NodeType}, M, F, A) ->
 			[cast({node, Node}, M, F, A) || #cluster_server{node = Node} <- ClusterServers];
 		true ->
 			{error, not_node_type}
+	end.
+
+open(ServerId) ->
+	case application:get_env(cluster, srv_id) of
+		{ok, ServerId} ->
+			cluster_client:async({is_open, ?CLUSTER_OPEN_STATUS});
+		_ ->
+			{error, need_local_call}
+	end.
+
+close(ServerId) ->
+	case application:get_env(cluster, srv_id) of
+		{ok, ServerId} ->
+			cluster_client:async({is_open, ?CLUSTER_CLOSE_STATUS});
+		_ ->
+			{error, need_local_call}
 	end.

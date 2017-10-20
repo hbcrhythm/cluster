@@ -47,7 +47,6 @@ servers(center) ->
 	[
 		{cluster_server, {cluster_server, start_link, []}, transient, 10000, worker, [cluster_server]}
 	];
-
 servers(_) ->
 	[
 		{cluster_client, {cluster_client, start_link, []}, transient, 10000, worker, [cluster_client]}

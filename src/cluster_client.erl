@@ -3,7 +3,6 @@
 %% @author labihbc@gmail.com
 %% @end
 %% ---------------------------------------
-
 -module(cluster_client).
 
 -behaviour(gen_server).
@@ -26,7 +25,6 @@ start_link() ->
 stop() -> ok. 
 
 init([]) ->
-    lager:info("start cluster client"),
     ets:new(?CLUSTER_SERVER, [ordered_set, named_table, public, {keypos, #cluster_server.id}]),
     ets:new(?CLUSTER_SERVER_ID, [set, named_table, public, {keypos, #cluster_server_id.sub_id}]),
     application:set_env(cluster, is_connect_cluster, false),
@@ -99,19 +97,17 @@ handle_info({cluster_servers, Servers}, State) ->
         begin
             erlang:set_cookie(Node, Cookie),
             ets:insert(?CLUSTER_SERVER, ClusterServer),
-            [ets:insert(?CLUSTER_SERVER_ID, #cluster_server_id{sub_id = SubId, id = ID, node = Node}) || SubId <- FullId]
+            [ets:insert(?CLUSTER_SERVER_ID, #cluster_server_id{sub_id = SubId, id = Id, node = Node}) || SubId <- FullId]
         end
-        || ClusterServer = #cluster_server{id=ID, full_id=FullId, node=Node, cookie = Cookie} <- Servers
+        || ClusterServer = #cluster_server{id = Id, full_id = FullId, node=Node, cookie = Cookie} <- Servers
     ],
     {noreply, State};
 
-% handle_info(ping, State) ->
-%     erlang:send({cluster_srv, sys_env:get(center_node)}, {ping, self()}),         %% 通知客户端节点接入
-%     {noreply, State};
-
-% handle_info(reply_ping, State) ->
-%     util:set_timer(ping, ?PING_INTERVAL, ping),
-%     {noreply, State};
+handle_info({is_open, Status}, State = #state{server_local = ClusterServer}) ->
+    {ok, CenterNode}    = application:get_env(cluster, center_node),
+    NewClusterServer = ClusterServer#cluster_server{is_open = Status},
+    erlang:send({cluster_server, CenterNode}, {update_cluster_server, NewClusterServer}),
+    {noreply, State#state{server_local = NewClusterServer}};
 
 handle_info({nodedown, Node}, State) ->
     case {ok, Node} == application:get_env(cluster, center_node) of
