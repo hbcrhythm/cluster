@@ -22,6 +22,7 @@ start(_StartType, _StartArgs) ->
 	Servers = servers(NodeType),
 	start_child(Servers),
 	connect(NodeType),
+	random:seed(os:timestamp(), random:uniform(9999999), random:uniform(9999999)),
 	{ok, Pid}.
 
 %%--------------------------------------------------------------------
