@@ -22,7 +22,8 @@ start(_StartType, _StartArgs) ->
 	Servers = servers(NodeType),
 	start_child(Servers),
 	connect(NodeType),
-	random:seed({random:uniform(9999999), random:uniform(9999999), random:uniform(9999999)}),
+	<<A:32,B:32,C:32>> = crypto:strong_rand_bytes(12),
+	random:seed(A, B, C),
 	{ok, Pid}.
 
 %%--------------------------------------------------------------------

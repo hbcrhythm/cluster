@@ -7,7 +7,7 @@
 
 -include("cluster.hrl").
 
--export([call/4, cast/4, call_broadcast/4, cast_broadcast/4, open/1, close/1]).
+-export([call/4, cast/4, call_broadcast/4, cast_broadcast/4, open/0, close/0]).
 
 %% @doc do call
 call(ServerId, M, F, A) when is_integer(ServerId) ->
@@ -93,18 +93,10 @@ cast_broadcast({type, NodeType}, M, F, A) ->
 			{error, not_node_type}
 	end.
 
-open(ServerId) ->
-	case application:get_env(cluster, srv_id) of
-		{ok, ServerId} ->
-			cluster_client:async({is_open, ?CLUSTER_OPEN_STATUS});
-		_ ->
-			{error, need_local_call}
-	end.
+open() ->
+	{ok, ServerId} =  application:get_env(cluster, srv_id),
+	cluster_client:async({is_open, ?CLUSTER_OPEN_STATUS}).
 
-close(ServerId) ->
-	case application:get_env(cluster, srv_id) of
-		{ok, ServerId} ->
-			cluster_client:async({is_open, ?CLUSTER_CLOSE_STATUS});
-		_ ->
-			{error, need_local_call}
-	end.
+close() ->
+	{ok, ServerId} = application:get_env(cluster, srv_id),
+	cluster_client:async({is_open, ?CLUSTER_CLOSE_STATUS}).
