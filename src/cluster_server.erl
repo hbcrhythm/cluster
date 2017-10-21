@@ -56,10 +56,6 @@ handle_info({connect, ClusterServer = #cluster_server{id = Id, full_id = FullId,
     end,
     {noreply, State};
 
-% handle_info({ping, Pid}, State) ->
-%     erlang:send(Pid, reply_ping),
-%     {noreply, State};
-
 handle_info({nodeup, _Node}, State) ->
     {noreply, State};
 handle_info({nodeup, _Node, _}, State) ->
@@ -96,7 +92,7 @@ code_change(_OldVsn, State, _Extra) ->
 do_nodedown(Node) ->
     case ets:match_object(?CLUSTER_SERVER, #cluster_server{node=Node, _='_'}) of
         [] -> ignore;
-        [#cluster_server{id = Id, full_id=FullId}|_] -> 
+        [#cluster_server{id = Id, full_id = FullId}|_] -> 
             ets:delete(?CLUSTER_SERVER, Id),
             [ets:delete(?CLUSTER_SERVER_ID, SubId) || SubId <- FullId],
             lager:info("server [~w]~w nodedown ", [Id, Node])

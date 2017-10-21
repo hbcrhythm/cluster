@@ -36,10 +36,6 @@ handle_call(_Request, _From, State) ->
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
-% handle_info(connect, State) ->
-%     self() ! connect,
-%     {noreply, State};
-
 handle_info(connect, State) ->
     {ok, SrvId} = application:get_env(cluster, srv_id),
     {ok, ServerFullId} = application:get_env(cluster, server_full_id),
@@ -91,15 +87,16 @@ handle_info(ready, State) ->
     lager:info("connect center server [~w] success ! ", [application:get_env(center_node)]),
     {noreply, State};
 
+%% @doc CenterCookie is cluster handshake Cookie
 handle_info({cluster_servers, Servers}, State) ->
-    %% 设置cookie，产生跨节点调用时可以自动连接
+    {ok, CenterCookie}  = application:get_env(cluster, center_cookie),
     [
         begin
-            erlang:set_cookie(Node, Cookie),
+            erlang:set_cookie(Node, CenterCookie),
             ets:insert(?CLUSTER_SERVER, ClusterServer),
             [ets:insert(?CLUSTER_SERVER_ID, #cluster_server_id{sub_id = SubId, id = Id, node = Node}) || SubId <- FullId]
         end
-        || ClusterServer = #cluster_server{id = Id, full_id = FullId, node=Node, cookie = Cookie} <- Servers
+        || ClusterServer = #cluster_server{id = Id, full_id = FullId, node=Node} <- Servers
     ],
     {noreply, State};
 
