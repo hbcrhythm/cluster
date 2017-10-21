@@ -94,9 +94,7 @@ cast_broadcast({type, NodeType}, M, F, A) ->
 	end.
 
 open() ->
-	{ok, ServerId} =  application:get_env(cluster, srv_id),
 	cluster_client:async({is_open, ?CLUSTER_OPEN_STATUS}).
 
 close() ->
-	{ok, ServerId} = application:get_env(cluster, srv_id),
 	cluster_client:async({is_open, ?CLUSTER_CLOSE_STATUS}).
