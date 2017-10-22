@@ -101,24 +101,18 @@ handle_info({sync_add_servers, Servers}, State) ->
     ],
     {noreply, State};
 
-handle_info({sync_del_servers, Servers}, State) ->
-    ets:delete(?CLUSTER_SERVER, Id),
-    [ets:delete(?CLUSTER_SERVER_ID, SubId) || SubId <- FullId],
-    cluster_event_stdlib:event_trigger(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVDOWN, [ClusterServer]),
-
-
 handle_info({is_open, Status}, State = #state{server_local = ClusterServer}) ->
     {ok, CenterNode}    = application:get_env(cluster, center_node),
     NewClusterServer = ClusterServer#cluster_server{is_open = Status},
     erlang:send({cluster_server, CenterNode}, {update_cluster_server, NewClusterServer}),
     {noreply, State#state{server_local = NewClusterServer}};
 
-handle_info({nodeup, Node}, State) ->
+handle_info({nodeup, _Node}, State) ->
     {noreply, State};
-handle_info({nodeup, Node, _}, State) ->
+handle_info({nodeup, _Node, _}, State) ->
     {noreply, State};
 
-handle_info({nodedown, ClusterServer = #cluster_server{id = Id, full_id = FullId}}, State) ->
+handle_info({nodedown, ClusterServer = #cluster_server{}}, State) ->
     nodedown(ClusterServer),
     {noreply, State};
 
@@ -144,6 +138,13 @@ terminate(Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
+%% @doc is not master node down
+nodedown(ClusterServer = #cluster_server{id = Id, full_id = FullId}) ->
+    ets:delete(?CLUSTER_SERVER, Id),
+    [ets:delete(?CLUSTER_SERVER_ID, SubId) || SubId <- FullId],
+    cluster_event_stdlib:event_trigger(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVDOWN, [ClusterServer]),
+    ignore;
+
 %% @doc master node down
 nodedown(Node) ->
     case application:get_env(cluster, center_node) of
@@ -156,8 +157,3 @@ nodedown(Node) ->
             ignore
     end.
 
-%% @doc is not master node down
-nodedown(ClusterServer = #cluster_server{id = Id, full_id = FullId}) ->
-    ets:delete(?CLUSTER_SERVER, Id),
-    [ets:delete(?CLUSTER_SERVER_ID, SubId) || SubId <- FullId],
-    cluster_event_stdlib:event_trigger(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVDOWN, [ClusterServer]).
