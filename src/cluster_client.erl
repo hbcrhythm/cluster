@@ -150,7 +150,7 @@ nodedown(Node) ->
     case application:get_env(cluster, center_node) of
         {ok, Node} -> 
             self() ! connect,
-            application:set_env(cluster, is_link_cluster, false),
+            application:set_env(cluster, is_connect_cluster, false),
             lager:error("nodedown : ~w", [Node]),
             ignore;
         _ -> 
