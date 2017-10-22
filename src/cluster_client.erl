@@ -88,13 +88,14 @@ handle_info(ready, State) ->
     {noreply, State};
 
 %% @doc CenterCookie is cluster handshake Cookie
-handle_info({cluster_servers, Servers}, State) ->
+handle_info({sync_servers, Servers}, State) ->
     {ok, CenterCookie}  = application:get_env(cluster, center_cookie),
     [
         begin
             erlang:set_cookie(Node, CenterCookie),
             ets:insert(?CLUSTER_SERVER, ClusterServer),
-            [ets:insert(?CLUSTER_SERVER_ID, #cluster_server_id{sub_id = SubId, id = Id, node = Node}) || SubId <- FullId]
+            [ets:insert(?CLUSTER_SERVER_ID, #cluster_server_id{sub_id = SubId, id = Id, node = Node}) || SubId <- FullId],
+            cluster_event_stdlib:event_trigger(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVUP, [ClusterServer])
         end
         || ClusterServer = #cluster_server{id = Id, full_id = FullId, node=Node} <- Servers
     ],
@@ -107,13 +108,21 @@ handle_info({is_open, Status}, State = #state{server_local = ClusterServer}) ->
     {noreply, State#state{server_local = NewClusterServer}};
 
 handle_info({nodedown, Node}, State) ->
-    case {ok, Node} == application:get_env(cluster, center_node) of
-        true -> 
+    case ets:match_object(?CLUSTER_SERVER, #cluster_server{node = Node, _='_'}) of
+        [] ->
+            ignore;
+        [ClusterServer = #cluster_server{id = Id, full_id = FullId}] ->
+            ets:delete(?CLUSTER_SERVER, Id),
+            [ets:delete(?CLUSTER_SERVER_ID, SubId) || SubId <- FullId],
+            cluster_event_stdlib:event_trigger(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVDOWN, [ClusterServer])
+    end,
+    case application:get_env(cluster, center_node) of
+        {ok, Node} -> 
             self() ! connect,
             application:set_env(cluster, is_link_cluster, false),
             lager:error("nodedown : ~w", [Node]),
             ignore;
-        false -> 
+        _ -> 
             ignore
     end,
     {noreply, State};
@@ -123,10 +132,9 @@ handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(normal, _State) ->
-    % util:unset_all_timer(),
     ok;
+    
 terminate(Reason, _State) ->
-    % util:unset_all_timer(),
     lager:error("terminate reason: ~w", [Reason]),
     ok.
 

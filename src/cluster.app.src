@@ -6,7 +6,8 @@
   {applications,
    [kernel,
     stdlib,
-    lager
+    lager,
+    cluster_event
    ]},
   {env,[
       {srv_id, 1}
@@ -16,6 +17,7 @@
       ,{ver, <<"1.0.0">>}
       ,{center_node, 'cluster_center_1@127.0.0.1'}
       ,{center_cookie, '666'}
+      ,{is_master, true}
   ]},
   {modules, []},
 

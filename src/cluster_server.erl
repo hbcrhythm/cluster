@@ -50,8 +50,9 @@ handle_info({connect, ClusterServer = #cluster_server{id = Id, full_id = FullId,
             [ets:insert(?CLUSTER_SERVER_ID, #cluster_server_id{sub_id = SubId, id = Id, node = Node}) || SubId <- FullId],
             erlang:send(Pid, ready),
             OtherSrvs = other_srvs(Node, Platform),
-            erlang:send(Pid, {cluster_servers, OtherSrvs}),   %% 通知新节点，其他的节点
-            [ erlang:send(XPid, {cluster_servers, [ClusterServer]}) || #cluster_server{pid = XPid} <- OtherSrvs],    %% 通知现有的节点，新开了节点
+            erlang:send(Pid, {sync_servers, OtherSrvs}),   %% 通知新节点，其他的节点
+            [ erlang:send(XPid, {sync_servers, [ClusterServer]}) || #cluster_server{pid = XPid} <- OtherSrvs],    %% 通知现有的节点，新开了节点
+            cluster_event_stdlib:event_trigger(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVUP, [ClusterServer]),
             lager:info("server [~w]~w accept success ~p", [Id, Node, Ver])
     end,
     {noreply, State};
@@ -92,8 +93,9 @@ code_change(_OldVsn, State, _Extra) ->
 do_nodedown(Node) ->
     case ets:match_object(?CLUSTER_SERVER, #cluster_server{node=Node, _='_'}) of
         [] -> ignore;
-        [#cluster_server{id = Id, full_id = FullId}|_] -> 
+        [ClusterServer = #cluster_server{id = Id, full_id = FullId}|_] -> 
             ets:delete(?CLUSTER_SERVER, Id),
             [ets:delete(?CLUSTER_SERVER_ID, SubId) || SubId <- FullId],
+            cluster_event_stdlib:event_trigger(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVDOWN, [ClusterServer]),
             lager:info("server [~w]~w nodedown ", [Id, Node])
     end.

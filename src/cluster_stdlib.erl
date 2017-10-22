@@ -8,6 +8,7 @@
 -include("cluster.hrl").
 
 -export([call/4, cast/4, call_broadcast/4, cast_broadcast/4, open/0, close/0]).
+-export([add_srvup_event/1, add_srvdown_event/1, del_srvup_event/0, del_srvup_event/1, del_srvdown_event/0, del_srvdown_event/1]).
 
 %% @doc do call
 call(ServerId, M, F, A) when is_integer(ServerId) ->
@@ -98,3 +99,28 @@ open() ->
 
 close() ->
 	cluster_client:async({is_open, ?CLUSTER_CLOSE_STATUS}).
+
+%% @doc Interface Event
+add_srvup_event({F, A}) ->
+	add_srvup_event({undefined, F, A});
+add_srvup_event(Mfa = {_M, _F, _A}) ->
+	cluster_event_stdlib:event_add(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVUP, Mfa).
+
+add_srvdown_event({F, A}) ->
+	add_srvup_event({undefined, F, A});
+add_srvdown_event(Mfa = {_M, _F, _A}) ->
+	cluster_event_stdlib:event_add(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVDOWN, Mfa).
+
+del_srvup_event() ->
+	cluster_event_stdlib:event_del(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVUP).
+del_srvup_event({F, A}) ->
+	del_srvup_event({undefined, F, A});
+del_srvup_event(Mfa = {_M, _F, _A}) ->
+	cluster_event_stdlib:event_del(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVUP, Mfa).
+
+del_srvdown_event() ->
+	cluster_event_stdlib:event_del(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVDOWN).
+del_srvdown_event({F, A}) ->
+	del_srvdown_event({undefined, F, A});
+del_srvdown_event(Mfa = {_M, _F, _A}) ->
+	cluster_event_stdlib:event_del(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVDOWN, Mfa).

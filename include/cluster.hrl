@@ -6,6 +6,7 @@
 %%------------------------------------------------------------
 
 -define(DEFAULT_NODE_TYPE, logic).
+-define(DEFAULT_IS_MASTER, false).
 
 -define(CLUSTER_SERVER, cluster_server).
 -define(CLUSTER_SERVER_ID, cluster_server_id).
@@ -13,8 +14,13 @@
 -define(CLUSTER_OPEN_STATUS, true).
 -define(CLUSTER_CLOSE_STATUS, false).
 
+
 -define(CLUSTER_CONNECT_INTERVAL, 1000).   %% 单位秒
 -define(PING_INTERVAL, 3000).   %% 单位秒
+
+-define(CLUSTER_EVENT_NAME, '@cluster_event').
+-define(CLUSTER_EVENT_SRVUP, cluster_srv_up).
+-define(CLUSTER_EVENT_SRVDOWN, cluster_srv_down).
 
 -record(cluster_server, {
         id = 0                              %% 服务器唯一id
@@ -27,6 +33,7 @@
         ,cookie
         ,ver                                %% 版本
         ,is_open = ?CLUSTER_OPEN_STATUS     %% 是否开放node_type访问，实现负载均衡控制. bool()
+        ,is_master
     }).
 
 -record(cluster_server_id, {
@@ -39,3 +46,10 @@
         id                  %% 模块唯一标识
         ,pos = 0            %% 下标
     }).
+
+% -record(cluster_event_callback, {
+%         m
+%         ,f
+%         ,a
+%         ,is_once = false
+%     }).

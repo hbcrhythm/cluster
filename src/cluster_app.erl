@@ -18,12 +18,13 @@
 
 start(_StartType, _StartArgs) ->
 	{ok, Pid} = cluster_sup:start_link(),
-	NodeType = application:get_env(cluster, node_type, ?DEFAULT_NODE_TYPE),		
-	Servers = servers(NodeType),
+	IsMaster = application:get_env(cluster, is_master, ?DEFAULT_IS_MASTER),	
+	Servers = servers(IsMaster),
 	start_child(Servers),
-	connect(NodeType),
+	connect(IsMaster),
 	<<A:32,B:32,C:32>> = crypto:strong_rand_bytes(12),
 	random:seed(A, B, C),
+	lager:info("start cluster application successe !"),
 	{ok, Pid}.
 
 %%--------------------------------------------------------------------
@@ -40,18 +41,20 @@ start_child([H | T]) ->
 			exit({error, _Error})
 	end.
 
-connect(center) ->
+connect(true) ->
 	ignore;
-connect(_) ->
+connect(false) ->
 	cluster_client:async(connect).
 
-servers(center) ->
+servers(true) ->
 	[
-		{cluster_server, {cluster_server, start_link, []}, transient, 10000, worker, [cluster_server]}
+		{cluster_server, {cluster_server, start_link, []}, transient, 10000, worker, [cluster_server]},
+		{cluster_event, {cluster_event_stdlib, start_link, [?CLUSTER_EVENT_NAME]}, transient, 10000, worker, [cluster_event]}
 	];
-servers(_) ->
+servers(false) ->
 	[
-		{cluster_client, {cluster_client, start_link, []}, transient, 10000, worker, [cluster_client]}
+		{cluster_client, {cluster_client, start_link, []}, transient, 10000, worker, [cluster_client]},
+		{cluster_event, {cluster_event_stdlib, start_link, [?CLUSTER_EVENT_NAME]}, transient, 10000, worker, [cluster_event]}
 	].
 
 %%====================================================================
