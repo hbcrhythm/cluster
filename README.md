@@ -18,7 +18,8 @@ example
 		    ,{node_type, normal}			%% required: @doc node type: normal | cloud | center
 		    ,{platform, <<"ios">>}			%% optional: @doc platform
 		    ,{ver, <<"1.0.0">>}				%% optional: @doc cluster version
-		    ,{center_node, 'cluster_center_1@127.0.0.1'}	%% required: normal, cloud 。@doc valid on node type of normal | cloud
-		    ,{center_cookie, '666'}				%% required: normal, cloud 。valid on node type of normal | cloud
+		    ,{center_node, 'cluster_center_1@127.0.0.1'}
+		    ,{center_cookie, '666'}
+		    ,{is_master, false}			%% is master node?
     	]
     }].
