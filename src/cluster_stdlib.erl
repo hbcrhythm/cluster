@@ -9,6 +9,7 @@
 
 -export([call/4, cast/4, call_broadcast/4, cast_broadcast/4, open/0, close/0]).
 -export([add_srvup_event/1, add_srvdown_event/1, del_srvup_event/0, del_srvup_event/1, del_srvdown_event/0, del_srvdown_event/1]).
+-export([open_connect/0, close_connect/0]).
 
 %% @doc do call
 call(ServerId, M, F, A) when is_integer(ServerId) ->
@@ -124,3 +125,8 @@ del_srvdown_event({F, A}) ->
 	del_srvdown_event({undefined, F, A});
 del_srvdown_event(Mfa = {_M, _F, _A}) ->
 	cluster_event_stdlib:event_del(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVDOWN, Mfa).
+
+open_connect() ->
+	application:set_env(cluster, is_open_connect, true).
+close_connect() ->
+	application:set_env(cluster, is_open_connect, false).

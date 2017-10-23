@@ -42,18 +42,24 @@ handle_cast(_Msg, State) ->
 handle_info(init, State) ->
     {noreply, State};
 handle_info({connect, ClusterServer = #cluster_server{id = Id, full_id = FullId, node = Node, ver = Ver, pid = Pid, platform = Platform}}, State) ->
-    case ets:lookup(?CLUSTER_SERVER, Id) of
-        [#cluster_server{}] ->
-            lager:error("server [~w]~w is exist", [Id, Node]);
-        [] -> 
-            ets:insert(?CLUSTER_SERVER, ClusterServer),
-            [ets:insert(?CLUSTER_SERVER_ID, #cluster_server_id{sub_id = SubId, id = Id, node = Node}) || SubId <- FullId],
-            erlang:send(Pid, ready),
-            OtherSrvs = other_srvs(Node, Platform),
-            erlang:send(Pid, {sync_add_servers, OtherSrvs}),   %% 通知新节点，其他的节点
-            [ erlang:send(XPid, {sync_add_servers, [ClusterServer]}) || #cluster_server{pid = XPid} <- OtherSrvs],    %% 通知现有的节点，新开了节点
-            cluster_event_stdlib:event_trigger(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVUP, [ClusterServer]),
-            lager:info("server [~w]~w accept success ~p", [Id, Node, Ver])
+    IsOpenConnect = application:get_env(cluster, is_open_connect, ?DEFAULT_OPEN_CONNECT),
+    case IsOpenConnect of
+        true ->
+            case ets:lookup(?CLUSTER_SERVER, Id) of
+                [#cluster_server{}] ->
+                    lager:error("server [~w]~w is exist", [Id, Node]);
+                [] -> 
+                    ets:insert(?CLUSTER_SERVER, ClusterServer),
+                    [ets:insert(?CLUSTER_SERVER_ID, #cluster_server_id{sub_id = SubId, id = Id, node = Node}) || SubId <- FullId],
+                    erlang:send(Pid, ready),
+                    OtherSrvs = other_srvs(Node, Platform),
+                    erlang:send(Pid, {sync_add_servers, OtherSrvs}),   %% 通知新节点，其他的节点
+                    [ erlang:send(XPid, {sync_add_servers, [ClusterServer]}) || #cluster_server{pid = XPid} <- OtherSrvs],    %% 通知现有的节点，新开了节点
+                    cluster_event_stdlib:event_trigger(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVUP, [ClusterServer]),
+                    lager:info("server [~w]~w accept success ~p", [Id, Node, Ver])
+            end;
+        false ->
+            lager:error("cluster not open connect !~n")
     end,
     {noreply, State};
 

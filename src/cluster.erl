@@ -11,6 +11,7 @@
 %% API
 %%====================================================================
 
+%% @doc start and open cluster connect.
 start() ->
 	application:ensure_all_started(cluster).
 

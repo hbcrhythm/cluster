@@ -7,6 +7,7 @@
 
 -define(DEFAULT_NODE_TYPE, logic).
 -define(DEFAULT_IS_MASTER, false).
+-define(DEFAULT_OPEN_CONNECT, true).
 
 -define(CLUSTER_SERVER, cluster_server).
 -define(CLUSTER_SERVER_ID, cluster_server_id).
