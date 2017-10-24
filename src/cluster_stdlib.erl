@@ -144,4 +144,4 @@ get_srv(ver, #cluster_server{ver = Ver}) ->
 get_srv(node, #cluster_server{node = Node}) ->
 	Node;
 get_srv(_, _) ->
-	{error, is_not_exist}.
+	undefined.
