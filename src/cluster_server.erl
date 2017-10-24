@@ -13,7 +13,9 @@
 
 -include("cluster.hrl").
 
--record(state, {}).
+-record(state, {
+        server_local
+    }).
 
 async(Msg) ->
     ?MODULE ! Msg.
@@ -32,7 +34,25 @@ init([]) ->
     ets:new(?CLUSTER_SERVER, [ordered_set, named_table, public, {keypos, #cluster_server.id}]),
     ets:new(?CLUSTER_SERVER_ID, [set, named_table, public, {keypos, #cluster_server_id.sub_id}]),
     ets:new(?CLUSTER_CLOUD_TASK, [set, named_table, public, {keypos, #cluster_cloud_task.id}]),
-    {ok, #state{}}.
+    {ok, SrvId} = application:get_env(cluster, srv_id),
+    {ok, FullId} = application:get_env(cluster, full_id),
+    {ok, NodeType} = application:get_env(cluster, node_type),
+    {ok, Plaform} = application:get_env(cluster, platform),
+    {ok, Ver} = application:get_env(cluster, ver),
+    ClusterServer = #cluster_server{
+        id          = SrvId
+        ,full_id    = FullId
+        ,type       = NodeType
+        ,pid        = self()
+        ,platform   = Plaform
+        ,node       = node()
+        ,cookie     = erlang:get_cookie()
+        ,ver        = Ver
+        ,is_master  = true
+    },
+    ets:insert(?CLUSTER_SERVER, ClusterServer),
+    [ets:insert(?CLUSTER_SERVER_ID, #cluster_server_id{sub_id = SubId, id = SrvId, node = node()}) || SubId <- FullId],
+    {ok, #state{server_local = ClusterServer}}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.

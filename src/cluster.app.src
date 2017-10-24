@@ -11,7 +11,7 @@
    ]},
   {env,[
       {srv_id, 1}
-      ,{server_full_id, [1, 2, 3]}
+      ,{full_id, [1, 2, 3]}
       ,{node_type, normal}
       ,{platform, <<"ios">>}
       ,{ver, <<"1.0.0">>}

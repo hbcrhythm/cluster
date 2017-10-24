@@ -38,19 +38,20 @@ handle_cast(_Msg, State) ->
 
 handle_info(connect, State) ->
     {ok, SrvId} = application:get_env(cluster, srv_id),
-    {ok, ServerFullId} = application:get_env(cluster, server_full_id),
+    {ok, FullId} = application:get_env(cluster, full_id),
     {ok, NodeType} = application:get_env(cluster, node_type),
     {ok, Plaform} = application:get_env(cluster, platform),
     {ok, Ver} = application:get_env(cluster, ver),
     ClusterServer = #cluster_server{
         id          = SrvId
-        ,full_id    = ServerFullId
+        ,full_id    = FullId
         ,type       = NodeType
         ,pid        = self()
         ,platform   = Plaform
         ,node       = node()
         ,cookie     = erlang:get_cookie()
         ,ver        = Ver
+        ,is_master  = false
     },
     {ok, CenterNode}    = application:get_env(cluster, center_node),
     {ok, CenterCookie}  = application:get_env(cluster, center_cookie),
