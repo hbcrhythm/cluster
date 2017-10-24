@@ -141,6 +141,14 @@ get_srv(platform, #cluster_server{platform = Platform}) ->
 	Platform;
 get_srv(ver, #cluster_server{ver = Ver}) ->
 	Ver;
+get_srv(type, #cluster_server{type = Type}) ->
+	Type;
+get_srv(full_id, #cluster_server{full_id = FullId}) ->
+	FullId;
+get_srv(pid, #cluster_server{pid = Pid}) ->
+	Pid;
+get_srv(is_master, #cluster_server{is_master = IsMaster}) ->
+	IsMaster;
 get_srv(node, #cluster_server{node = Node}) ->
 	Node;
 get_srv(_, _) ->
