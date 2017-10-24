@@ -74,7 +74,7 @@ handle_info({connect, ClusterServer = #cluster_server{id = Id, full_id = FullId,
                     erlang:send(Pid, ready),
                     OtherSrvs = other_srvs(Node, Platform),
                     erlang:send(Pid, {sync_add_servers, OtherSrvs}),   %% 通知新节点，其他的节点
-                    [ erlang:send(XPid, {sync_add_servers, [ClusterServer]}) || #cluster_server{pid = XPid} <- OtherSrvs],    %% 通知现有的节点，新开了节点
+                    [ erlang:send(XPid, {sync_add_servers, [ClusterServer]}) || #cluster_server{pid = XPid} <- OtherSrvs, XPid =/= self()],    %% 通知现有的节点，新开了节点
                     cluster_event_stdlib:event_trigger(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVUP, [ClusterServer]),
                     lager:info("server [~w]~w accept success ~p", [Id, Node, Ver])
             end;
@@ -100,7 +100,7 @@ handle_info({is_open, _}, State) ->
 handle_info({update_cluster_server, ClusterServer = #cluster_server{node = Node, platform = Platform}}, State) ->
     ets:insert(?CLUSTER_SERVER, ClusterServer),
     OtherSrvs = other_srvs(Node, Platform),
-    [erlang:send(XPid, {cluster_servers, [ClusterServer]}) || #cluster_server{pid = XPid} <- OtherSrvs],
+    [erlang:send(XPid, {cluster_servers, [ClusterServer]}) || #cluster_server{pid = XPid} <- OtherSrvs, XPid =/= self()],
     {noreply, State};
 
 handle_info(_Info, State) ->
@@ -124,6 +124,6 @@ nodedown(Node) ->
             [ets:delete(?CLUSTER_SERVER_ID, SubId) || SubId <- FullId],
             cluster_event_stdlib:event_trigger(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVDOWN, [ClusterServer]),
             OtherSrvs = other_srvs(Node, Platform),
-            [erlang:send(XPid, {nodedown, ClusterServer}) || #cluster_server{pid = XPid} <- OtherSrvs],
+            [erlang:send(XPid, {nodedown, ClusterServer}) || #cluster_server{pid = XPid} <- OtherSrvs, XPid =/= self()],
             lager:info("server [~w] ~w nodedown ", [Id, Node])
     end.
