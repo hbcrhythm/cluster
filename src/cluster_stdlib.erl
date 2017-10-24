@@ -10,6 +10,7 @@
 -export([call/4, cast/4, call_broadcast/4, cast_broadcast/4, open/0, close/0]).
 -export([add_srvup_event/1, add_srvdown_event/1, del_srvup_event/0, del_srvup_event/1, del_srvdown_event/0, del_srvdown_event/1]).
 -export([open_connect/0, close_connect/0]).
+-export([get_srv/2]).
 
 %% @doc do call
 call(ServerId, M, F, A) when is_integer(ServerId) ->
@@ -126,7 +127,21 @@ del_srvdown_event({F, A}) ->
 del_srvdown_event(Mfa = {_M, _F, _A}) ->
 	cluster_event_stdlib:event_del(?CLUSTER_EVENT_NAME, ?CLUSTER_EVENT_SRVDOWN, Mfa).
 
+%% @doc change is_open_connect to true
 open_connect() ->
 	application:set_env(cluster, is_open_connect, true).
+
+%% @doc change is_open_connect to false
 close_connect() ->
 	application:set_env(cluster, is_open_connect, false).
+
+get_srv(id, #cluster_server{id = Id}) ->
+	Id;
+get_srv(platform, #cluster_server{platform = Platform}) ->
+	Platform;
+get_srv(ver, #cluster_server{ver = Ver}) ->
+	Ver;
+get_srv(node, #cluster_server{node = Node}) ->
+	Node;
+get_srv(_, _) ->
+	{error, is_not_exist}.
