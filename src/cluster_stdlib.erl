@@ -10,7 +10,7 @@
 -export([call/4, cast/4, call_broadcast/4, cast_broadcast/4, open/0, close/0]).
 -export([add_srvup_event/1, add_srvdown_event/1, del_srvup_event/0, del_srvup_event/1, del_srvdown_event/0, del_srvdown_event/1]).
 -export([open_connect/0, close_connect/0]).
--export([get_srv/2]).
+-export([get_srv/2, get_srvid_list/0, get_srvid_list/1]).
 
 %% @doc do call
 call(ServerId, M, F, A) when is_integer(ServerId) ->
@@ -153,3 +153,10 @@ get_srv(node, #cluster_server{node = Node}) ->
 	Node;
 get_srv(_, _) ->
 	undefined.
+
+get_srvid_list() ->
+	[Id || #cluster_server{id = Id} <- ets:tab2list(?CLUSTER_SERVER)].	
+get_srvid_list({type, Type}) ->
+	[Id || #cluster_server{id = Id} <- ets:match_object(?CLUSTER_SERVER, #cluster_server{type = Type, _ = '_'})];
+get_srvid_list({platform, Platform}) ->
+	[Id || #cluster_server{id = Id} <- ets:match_object(?CLUSTER_SERVER, #cluster_server{platform = Platform, _ = '_'})].
