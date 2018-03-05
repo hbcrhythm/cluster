@@ -22,8 +22,8 @@ start(_StartType, _StartArgs) ->
 	Servers = servers(IsMaster),
 	start_child(Servers),
 	connect(IsMaster),
-	<<A:32,B:32,C:32>> = crypto:strong_rand_bytes(12),
-	random:seed(A, B, C),
+	% <<A:32,B:32,C:32>> = crypto:strong_rand_bytes(12),
+	% random:seed(A, B, C),
 	lager:info("start cluster application successe !"),
 	{ok, Pid}.
 
