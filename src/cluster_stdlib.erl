@@ -9,7 +9,7 @@
 
 -export([call/4, cast/4, call_broadcast/4, cast_broadcast/4, open/0, close/0]).
 -export([add_srvup_event/1, add_srvdown_event/1, del_srvup_event/0, del_srvup_event/1, del_srvdown_event/0, del_srvdown_event/1]).
--export([open_connect/0, close_connect/0]).
+-export([open_connect/0, close_connect/0, cluster_connect/0]).
 -export([get_srv/2, get_srvid_list/0, get_srvid_list/1]).
 
 %% @doc do call
@@ -102,7 +102,7 @@ open() ->
 close() ->
 	cluster_client:async({is_open, ?CLUSTER_CLOSE_STATUS}).
 
-%% @doc Interface Event
+%% @doc SevUp, SevDown event, Need to be before cluster_connect().
 add_srvup_event({F, A}) ->
 	add_srvup_event({undefined, F, A});
 add_srvup_event(Mfa = {_M, _F, _A}) ->
@@ -134,6 +134,9 @@ open_connect() ->
 %% @doc change is_open_connect to false
 close_connect() ->
 	application:set_env(cluster, is_open_connect, false).
+
+cluster_connect() ->
+	cluster_app:connect().
 
 get_srv(id, #cluster_server{id = Id}) ->
 	Id;

@@ -10,7 +10,7 @@
 -include("cluster.hrl").
 
 %% Application callbacks
--export([start/2, stop/1]).
+-export([start/2, stop/1, connect/0]).
 
 %%====================================================================
 %% API
@@ -21,9 +21,9 @@ start(_StartType, _StartArgs) ->
 	IsMaster = application:get_env(cluster, is_master, ?DEFAULT_IS_MASTER),	
 	Servers = servers(IsMaster),
 	start_child(Servers),
-	connect(IsMaster),
-	% <<A:32,B:32,C:32>> = crypto:strong_rand_bytes(12),
-	% random:seed(A, B, C),
+
+	% connect(IsMaster),
+
 	lager:info("start cluster application successe !"),
 	{ok, Pid}.
 
@@ -41,6 +41,10 @@ start_child([H | T]) ->
 			exit({error, _Error})
 	end.
 
+%% @doc You connect need to be called manually, Once you have completed your application initialization.
+connect() ->
+	IsMaster = application:get_env(cluster, is_master, ?DEFAULT_IS_MASTER),	
+	connect(IsMaster).
 connect(true) ->
 	ignore;
 connect(false) ->
