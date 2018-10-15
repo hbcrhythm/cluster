@@ -14,17 +14,23 @@
 
 %% @doc do call
 call(ServerId, M, F, A) when is_integer(ServerId) ->
-	case ets:lookup(?CLUSTER_SERVER_ID, ServerId) of
-		[#cluster_server_id{id = Id, node = Node}] ->
-			{ok, NodeType} = application:get_env(cluster, node_type),
-			case ets:lookup(?CLUSTER_SERVER, Id) of
-				[#cluster_server{type = NodeType}] ->
-					{error, same_node_type};
-				[#cluster_server{node = Node}] ->
-					call({node, Node}, M, F, A)
-			end;
-		_ ->
-			{error, not_serverid}
+	FullId = application:get_env(cluster, full_id, []),	
+	case lists:member(ServerId, FullId) of
+		true ->
+			call({node, node()}, M, F, A);
+		false ->
+			case ets:lookup(?CLUSTER_SERVER_ID, ServerId) of
+				[#cluster_server_id{id = Id, node = Node}] ->
+					{ok, NodeType} = application:get_env(cluster, node_type),
+					case ets:lookup(?CLUSTER_SERVER, Id) of
+						[#cluster_server{type = NodeType}] ->
+							{error, same_node_type};
+						[#cluster_server{node = Node}] ->
+							call({node, Node}, M, F, A)
+					end;
+				_ ->
+					{error, not_serverid}
+			end
 	end;
 
 %% @doc random a node of NodeType to do call
@@ -56,17 +62,23 @@ call_broadcast({type, NodeType}, M, F, A) ->
 
 
 cast(ServerId, M, F, A) when is_integer(ServerId) ->
-	case ets:lookup(?CLUSTER_SERVER_ID, ServerId) of
-		[#cluster_server_id{id = Id, node = Node}] ->
-			{ok, NodeType} = application:get_env(cluster, node_type),
-			case ets:lookup(?CLUSTER_SERVER, Id) of
-				[#cluster_server{type = NodeType}] ->
-					{error, same_node_type};
-				[#cluster_server{node = Node}] ->
-					cast({node, Node}, M, F, A)
-			end;
-		_ ->
-			{error, not_serverid}
+	FullId = application:get_env(cluster, full_id, []),	
+	case lists:member(ServerId, FullId) of
+		true ->
+			cast({node, node()}, M, F, A);
+		false ->
+			case ets:lookup(?CLUSTER_SERVER_ID, ServerId) of
+				[#cluster_server_id{id = Id, node = Node}] ->
+					{ok, NodeType} = application:get_env(cluster, node_type),
+					case ets:lookup(?CLUSTER_SERVER, Id) of
+						[#cluster_server{type = NodeType}] ->
+							{error, same_node_type};
+						[#cluster_server{node = Node}] ->
+							cast({node, Node}, M, F, A)
+					end;
+				_ ->
+					{error, not_serverid}
+			end
 	end;
 
 %% @doc random a node of NodeType to do cast
