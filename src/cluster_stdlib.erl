@@ -21,12 +21,14 @@ call(ServerId, M, F, A) when is_integer(ServerId) ->
 		false ->
 			case ets:lookup(?CLUSTER_SERVER_ID, ServerId) of
 				[#cluster_server_id{id = Id, node = Node}] ->
-					{ok, NodeType} = application:get_env(cluster, node_type),
+					% {ok, NodeType} = application:get_env(cluster, node_type),
 					case ets:lookup(?CLUSTER_SERVER, Id) of
-						[#cluster_server{type = NodeType}] ->
-							{error, same_node_type};
+						% [#cluster_server{type = NodeType}] ->
+							% {error, same_node_type};
 						[#cluster_server{node = Node}] ->
-							call({node, Node}, M, F, A)
+							call({node, Node}, M, F, A);
+						[] ->
+							{error, not_serverid}
 					end;
 				_ ->
 					{error, not_serverid}
@@ -69,12 +71,14 @@ cast(ServerId, M, F, A) when is_integer(ServerId) ->
 		false ->
 			case ets:lookup(?CLUSTER_SERVER_ID, ServerId) of
 				[#cluster_server_id{id = Id, node = Node}] ->
-					{ok, NodeType} = application:get_env(cluster, node_type),
+					% {ok, NodeType} = application:get_env(cluster, node_type),
 					case ets:lookup(?CLUSTER_SERVER, Id) of
-						[#cluster_server{type = NodeType}] ->
-							{error, same_node_type};
+						% [#cluster_server{type = NodeType}] ->
+							% {error, same_node_type};
 						[#cluster_server{node = Node}] ->
-							cast({node, Node}, M, F, A)
+							cast({node, Node}, M, F, A);
+						[] ->
+							{error, not_serverid}
 					end;
 				_ ->
 					{error, not_serverid}
